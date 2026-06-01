@@ -1,0 +1,10 @@
+name: bank_support
+description: Intelligent customer support prompt chain for a bank.
+version: 1.0.0
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  http: ^1.2.0
+  dotenv: ^4.2.0
