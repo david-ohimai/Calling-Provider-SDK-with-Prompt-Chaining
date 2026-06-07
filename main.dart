@@ -3,19 +3,23 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
-// Load environment variables from a .env file.
 Future<Map<String, String>> loadEnv() async {
-  final envFile = File('.env');
-  if (!await envFile.exists()) {
-    throw Exception('.env file not found');
-  }
-  final lines = await envFile.readAsLines();
   final env = <String, String>{};
-  for (final line in lines) {
-    if (line.trim().isEmpty || line.startsWith('#')) continue;
-    final parts = line.split('=');
-    if (parts.length == 2) {
-      env[parts[0].trim()] = parts[1].trim();
+  final file = File('.env');
+  if (await file.exists()) {
+    final lines = await file.readAsLines();
+    for (final line in lines) {
+      final trimmed = line.trim();
+      if (trimmed.isEmpty || trimmed.startsWith('#')) continue;
+      final eqIdx = trimmed.indexOf('=');
+      if (eqIdx < 0) continue;
+      final key = trimmed.substring(0, eqIdx).trim();
+      var value = trimmed.substring(eqIdx + 1).trim();
+      if ((value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.substring(1, value.length - 1);
+      }
+      env[key] = value;
     }
   }
   return env;
@@ -33,8 +37,7 @@ String loadPrompt(String filename, Map<String, String> values) {
 
 // Call the OpenRouter API with the given prompt.
 Future<String> callApi(String prompt, String apiKey, String modelName) async {
-  final env = await loadEnv();
-  final apiUrl = Platform.environment['API_URL'] ?? env['API_URL'];
+  const apiUrl = 'https://openrouter.ai/api/v1';
   final url = Uri.parse('$apiUrl/chat/completions');
   final headers = {
     'Authorization': 'Bearer $apiKey',
